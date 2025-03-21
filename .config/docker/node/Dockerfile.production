@@ -1,18 +1,33 @@
-# Usa uma imagem oficial do Node.js
-FROM node:lts-alpine
+# Usa a imagem oficial do Node.js
+FROM node:lts-alpine AS build
 
 # Define o diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos necessários e instala as dependências
-COPY package.json package-lock.json* ./
+# Copia arquivos essenciais para instalar dependências
+COPY package.json package-lock.json* tsconfig.json ./
+
+# Instala dependências sem pacotes de desenvolvimento
 RUN npm install --only=production
 
 # Copia o restante do projeto
 COPY . .
 
-# Expõe a porta da API
+# Compila o TypeScript
+RUN npm install -g typescript && npx tsc
+
+# ------------------------------------
+# Segunda etapa: criar uma imagem menor sem TypeScript e dependências extras
+FROM node:lts-alpine
+
+WORKDIR /app
+
+# Copia apenas os arquivos compilados da etapa anterior
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY package.json ./
+
 EXPOSE 3000
 
-# Comando para iniciar a API no modo produção
-CMD ["node", "src/index.ts"]
+# Comando para rodar a API no modo produção
+CMD ["node", "dist/index.js"]
