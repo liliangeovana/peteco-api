@@ -1,0 +1,23 @@
+# Usa a imagem oficial do Node.js
+FROM node:lts-alpine
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Copia apenas os arquivos necessários para instalação das dependências
+COPY package.json package-lock.json* ./
+
+# Instala dependências
+RUN npm install
+
+# Copia todo o projeto para dentro do container
+COPY . .
+
+# Instala nodemon para hot reload no desenvolvimento
+RUN npm install -g nodemon
+
+# Expõe a porta da API
+EXPOSE 3030
+
+# Comando para rodar a API com nodemon
+CMD ["nodemon", "src/index.ts"]

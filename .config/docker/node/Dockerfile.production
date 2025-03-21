@@ -1,0 +1,18 @@
+# Usa uma imagem oficial do Node.js
+FROM node:lts-alpine
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Copia os arquivos necessários e instala as dependências
+COPY package.json package-lock.json* ./
+RUN npm install --only=production
+
+# Copia o restante do projeto
+COPY . .
+
+# Expõe a porta da API
+EXPOSE 3000
+
+# Comando para iniciar a API no modo produção
+CMD ["node", "src/index.ts"]
